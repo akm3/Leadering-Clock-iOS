@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+*.xcuserdatad/
+xcuserdata/
+DerivedData/
+build/
+*.ipa
+generate_icon.py
+AppIcon-1024.png

@@ -32,13 +32,12 @@ body {
   background: var(--it-bg);
   color: var(--it-dark);
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   position: relative;
   /* iOS safe areas for notch / Dynamic Island */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
 }
 
 /* Subtle dot grid background */
@@ -53,17 +52,7 @@ body::before {
   z-index: 0;
 }
 
-/* Blue accent stripe across the top */
-body::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--it-blue), var(--it-blue-dark));
-  z-index: 10;
-}
+/* Blue accent stripe across the top — disabled on iOS, using container bar only */
 
 /* ── App Container ───────────────────────────── */
 .app-container {
@@ -71,10 +60,13 @@ body::after {
   z-index: 1;
   width: 100%;
   max-width: 500px;
+  margin: 0 auto;
   padding: 2.5rem 2rem;
+  padding-bottom: 3rem;
   background: var(--it-white);
   border: 1px solid var(--it-light);
-  border-radius: 1rem;
+  border-top: none;
+  border-radius: 0 0 1rem 1rem;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(31,112,185,0.08);
 }
 
@@ -412,7 +404,7 @@ body::after {
 
 .currency-input input {
   padding-left: 1.5rem;
-  width: 6rem;
+  width: 7rem;
 }
 
 .meeting-display {
@@ -463,6 +455,7 @@ body::after {
   .app-container {
     margin: 1rem;
     padding: 2rem 1.25rem;
+    margin-bottom: 2rem;
   }
   .clock-display,
   .timer-display {
@@ -472,8 +465,13 @@ body::after {
     width: 3.5rem;
     font-size: 1.2rem;
   }
+  .currency-input input {
+    width: 5rem;
+    font-size: 1.2rem;
+  }
   .meeting-display {
     flex-direction: column;
+    align-items: center;
     gap: 1rem;
   }
   .meeting-timer-display,
