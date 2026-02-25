@@ -531,3 +531,110 @@ btnMeetingReset.addEventListener('click', () => {
     localStorage.removeItem('meetingState');
   }
 })();
+
+// ── iOS / Capacitor Integration ─────────────────
+(function initCapacitor() {
+  if (typeof Capacitor === 'undefined') return; // Running in browser, skip
+
+  const { StatusBar, SplashScreen, Haptics, App, KeepAwake } = Capacitor.Plugins;
+
+  // Configure status bar
+  if (StatusBar) {
+    StatusBar.setStyle({ style: 'LIGHT' });
+  }
+
+  // Hide splash screen once loaded
+  if (SplashScreen) {
+    SplashScreen.hide();
+  }
+
+  // Keep screen awake when a timer or meeting is running
+  function updateKeepAwake() {
+    if (!KeepAwake) return;
+    if (isRunning || meetingRunning) {
+      KeepAwake.keepAwake();
+    } else {
+      KeepAwake.allowSleep();
+    }
+  }
+
+  // Observe timer state changes for keep-awake
+  const origSaveTimer = saveTimerState;
+  saveTimerState = function() {
+    origSaveTimer();
+    updateKeepAwake();
+  };
+  const origClearTimer = clearTimerState;
+  clearTimerState = function() {
+    origClearTimer();
+    updateKeepAwake();
+  };
+  const origSaveMeeting = saveMeetingState;
+  saveMeetingState = function() {
+    origSaveMeeting();
+    updateKeepAwake();
+  };
+  const origClearMeeting = clearMeetingState;
+  clearMeetingState = function() {
+    origClearMeeting();
+    updateKeepAwake();
+  };
+
+  // Reconcile timers when app returns from background
+  if (App) {
+    App.addListener('appStateChange', ({ isActive }) => {
+      if (!isActive) return;
+
+      // Reconcile item timer
+      const timerRaw = localStorage.getItem('timerState');
+      if (timerRaw) {
+        try {
+          const ts = JSON.parse(timerRaw);
+          if (ts.isRunning) {
+            const elapsed = Math.round((Date.now() - ts.savedAt) / 1000);
+            timerDuration = ts.timerDuration - elapsed;
+            timerTimeEl.textContent = formatTime(timerDuration);
+
+            if (timerDuration <= 0 && !hasReachedZero) {
+              hasReachedZero = true;
+              timerDisplay.classList.add('negative');
+            }
+            if (timerDuration <= -300) {
+              timerDisplay.classList.add('urgent-flash');
+              timerWarning.hidden = false;
+            }
+            if (timerDuration <= -600) {
+              timerSkull.hidden = false;
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Reconcile meeting timer
+      const meetingRaw = localStorage.getItem('meetingState');
+      if (meetingRaw) {
+        try {
+          const ms = JSON.parse(meetingRaw);
+          if (ms.meetingRunning) {
+            const elapsed = Math.round((Date.now() - ms.savedAt) / 1000);
+            meetingElapsed = ms.meetingElapsed + elapsed;
+            meetingTimerTimeEl.textContent = formatMeetingTime(meetingElapsed);
+            updateMeetingCost();
+          }
+        } catch (_) {}
+      }
+    });
+  }
+
+  // Haptic feedback on timer zero
+  if (Haptics) {
+    const origTimerReachedZero = timerReachedZero;
+    timerReachedZero = function() {
+      origTimerReachedZero();
+      Haptics.notification({ type: 'ERROR' });
+    };
+  }
+
+  // Initial keep-awake check
+  updateKeepAwake();
+})();

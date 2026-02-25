@@ -1,5 +1,19 @@
 {
   "appId": "com.intellitect.leaderingclock",
   "appName": "Leadering Clock",
-  "webDir": "www"
+  "webDir": "www",
+  "ios": {
+    "contentInset": "automatic",
+    "preferredContentMode": "mobile"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "launchShowDuration": 1500,
+      "backgroundColor": "#F7F9FC"
+    },
+    "StatusBar": {
+      "style": "LIGHT"
+    }
+  }
 }
